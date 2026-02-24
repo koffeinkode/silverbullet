@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-family: 'SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace', 'Monaco', 'Courier New', monospace;
             background: #0a0a0a;
             color: #e0e0e0;
             padding: 20px;
@@ -54,7 +54,7 @@
             color: #e0e0e0;
             border-radius: 4px;
             cursor: pointer;
-            font-family: 'SF Mono', monospace;
+            font-family: 'SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace', monospace;
             font-size: 12px;
             transition: all 0.2s;
             white-space: nowrap;
@@ -118,7 +118,7 @@
 
         .data-table td {
             color: #e0e0e0;
-            font-family: 'SF Mono', monospace;
+            font-family: 'SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace', monospace;
         }
 
         .data-table tr:last-child td {
@@ -944,7 +944,7 @@ function renderAll() {
             const fontSize = Math.max(9, Math.min(14, Math.round(valWidth * 0.18)));
             const nameFontSize = Math.max(8, fontSize - 1);
             const rowBorder = 'border-bottom:1px solid #1c1c1c';
-            const cellBase = `padding:4px 3px;${rowBorder};font-family:'SF Mono',monospace;`;
+            const cellBase = `padding:4px 3px;${rowBorder};font-family:'SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace',monospace;`;
 
             let html = `<div style="display:grid;grid-template-columns:${colTemplate};column-gap:${gapSize}px;font-size:${fontSize}px;">`;
 
@@ -1029,7 +1029,7 @@ function renderAll() {
 
             // Profilnavn
             ctx.fillStyle = '#555';
-            ctx.font = `${8 * dpr / dpr}px SF Mono`;
+            ctx.font = `${8 * dpr / dpr}px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace`;
             ctx.textAlign = 'left';
             ctx.fillText(data.filename, pad.left + 2, pad.top + 7);
         }
@@ -1045,7 +1045,7 @@ function renderAll() {
             ctx.setLineDash([]);
 
             ctx.fillStyle = color;
-            ctx.font = '10px SF Mono';
+            ctx.font = '10px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
             ctx.textAlign = 'center';
             ctx.fillText(label, x, padding.top - 4);
         }
@@ -1107,7 +1107,7 @@ function renderAll() {
 
                 const temp = maxTemp * (1 - i / 5);
                 ctx.fillStyle = '#666';
-                ctx.font = '11px SF Mono';
+                ctx.font = '11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                 ctx.textAlign = 'right';
                 ctx.fillText(temp.toFixed(0) + '°C', padding.left - 10, y + 4);
 
@@ -1127,7 +1127,7 @@ function renderAll() {
 
                 const time = maxTime * i / 10;
                 ctx.fillStyle = '#666';
-                ctx.font = '11px SF Mono';
+                ctx.font = '11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(formatTime(time), x, height - padding.bottom + 20);
             }
@@ -1254,7 +1254,7 @@ function renderAll() {
             if (singleData && hasActions) {
                 const actions = singleData.actionEvents;
                 const ctrlColors = ['#f97316', '#60a5fa', '#9ca3af'];
-                const ctrlLabels = ['P', 'F', 'D'];
+                const ctrlLabels = ['Power', 'Fan', 'Drum'];
                 const stripTop = chartH + 6;
                 const rowH = 28;
                 const chartW = width - padding.left - padding.right;
@@ -1274,7 +1274,7 @@ function renderAll() {
                     const color = ctrlColors[ci];
 
                     ctx.fillStyle = color;
-                    ctx.font = '11px SF Mono';
+                    ctx.font = '11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                     ctx.textAlign = 'right';
                     ctx.fillText(ctrlLabels[ci], padding.left - 5, rowY + 4);
 
@@ -1293,7 +1293,7 @@ function renderAll() {
                         ctx.beginPath();
 
                         ctx.fillStyle = color;
-                        ctx.font = 'bold 11px SF Mono';
+                        ctx.font = 'bold 11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                         ctx.textAlign = 'center';
                         ctx.fillText(ev.value, ex, rowY - 6);
 
@@ -1512,7 +1512,7 @@ function renderAll() {
 
                 const ror = maxRor * (1 - i / 5);
                 ctx.fillStyle = '#666';
-                ctx.font = '11px SF Mono';
+                ctx.font = '11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                 ctx.textAlign = 'right';
                 ctx.fillText(ror.toFixed(0), padding.left - 10, y + 4);
             }
@@ -1526,7 +1526,7 @@ function renderAll() {
 
                 const time = maxTime * i / 10;
                 ctx.fillStyle = '#666';
-                ctx.font = '11px SF Mono';
+                ctx.font = '11px SF Mono, SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(formatTime(time), x, height - padding.bottom + 20);
             }
