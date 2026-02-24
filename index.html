@@ -762,12 +762,12 @@ function renderAll() {
                 </h3>
                 ${data.preheatTemp != null ? `
                 <div class="detail-item">
-                    <span class="detail-label">Forvarm</span>
+                    <span class="detail-label">Preheat</span>
                     <span class="detail-value">${data.preheatTemp}°C</span>
                 </div>` : ''}
                 ${data.chargeTemp != null ? `
                 <div class="detail-item">
-                    <span class="detail-label">Ladetemp</span>
+                    <span class="detail-label">Charge</span>
                     <span class="detail-value">${data.chargeTemp.toFixed(1)}°C</span>
                 </div>` : ''}
                 <div class="detail-item">
@@ -843,8 +843,8 @@ function renderAll() {
             detailBox.className = 'detail-box active';
 
             const metrics = [
-                { label: 'Forvarm',    fn: d => d.preheatTemp != null ? d.preheatTemp + '°' : '—' },
-                { label: 'Ladetemp',   fn: d => d.chargeTemp != null ? d.chargeTemp.toFixed(1) + '°' : '—' },
+                { label: 'Preheat',    fn: d => d.preheatTemp != null ? d.preheatTemp + '°' : '—' },
+                { label: 'Charge',   fn: d => d.chargeTemp != null ? d.chargeTemp.toFixed(1) + '°' : '—' },
                 { label: 'Grønnkaffe', fn: d => d.weightGreen != null ? d.weightGreen + 'g' : '—' },
                 { label: 'Vekttap',    fn: d => d.weightLoss != null ? d.weightLoss.toFixed(1) + '%' : '—' },
                 { label: 'Farge',      fn: d => d.colorLevel != null ? d.colorLevel.toFixed(1) : '—' },
