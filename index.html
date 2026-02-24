@@ -1055,7 +1055,7 @@ function renderAll() {
             const activeIndex = lockedRoastIndex !== null ? lockedRoastIndex : hoveredRoastIndex;
             const singleData = activeIndex !== null ? roastData[activeIndex] : (chartSelectedSet.size === 1 ? roastData[[...chartSelectedSet][0]] : null);
             const hasActions = singleData && singleData.actionEvents && singleData.actionEvents.length > 0;
-            const stripH = (activeIndex !== null && hasActions) ? 58 : 0;
+            const stripH = (activeIndex !== null && hasActions) ? 96 : 0;
             const chartH = 500;
             const totalH = chartH + stripH;
 
@@ -1252,8 +1252,8 @@ function renderAll() {
                 const actions = singleData.actionEvents;
                 const ctrlColors = ['#f97316', '#60a5fa', '#9ca3af'];
                 const ctrlLabels = ['P', 'F', 'D'];
-                const stripTop = chartH + 4;
-                const rowH = 16;
+                const stripTop = chartH + 6;
+                const rowH = 28;
                 const chartW = width - padding.left - padding.right;
 
                 ctx.strokeStyle = '#2a2a2a';
@@ -1271,9 +1271,9 @@ function renderAll() {
                     const color = ctrlColors[ci];
 
                     ctx.fillStyle = color;
-                    ctx.font = '9px SF Mono';
+                    ctx.font = '11px SF Mono';
                     ctx.textAlign = 'right';
-                    ctx.fillText(ctrlLabels[ci], padding.left - 4, rowY + 3);
+                    ctx.fillText(ctrlLabels[ci], padding.left - 5, rowY + 4);
 
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 1.5;
@@ -1290,9 +1290,9 @@ function renderAll() {
                         ctx.beginPath();
 
                         ctx.fillStyle = color;
-                        ctx.font = '8px SF Mono';
+                        ctx.font = 'bold 11px SF Mono';
                         ctx.textAlign = 'center';
-                        ctx.fillText(ev.value, ex, rowY - 3);
+                        ctx.fillText(ev.value, ex, rowY - 6);
 
                         prevX = ex;
                     });
