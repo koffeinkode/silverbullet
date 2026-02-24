@@ -197,6 +197,14 @@
             align-items: flex-start;
         }
 
+        .chart-with-detail.comparison-mode {
+            flex-direction: column;
+        }
+
+        .chart-with-detail.comparison-mode .detail-box {
+            width: auto !important;
+        }
+
         .detail-box {
             display: none;
             width: 260px;
@@ -644,7 +652,7 @@ function renderAll() {
 
                 row.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (e.metaKey) {
+                    if (e.metaKey || e.ctrlKey) {
                         lockedRoastIndex = null;
                         document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('locked'));
                         if (chartSelectedSet.has(idx)) {
@@ -733,6 +741,7 @@ function renderAll() {
 
             detailBox.style.width = '';
             detailBox.className = 'detail-box active';
+            document.querySelector('.chart-with-detail').classList.remove('comparison-mode');
             detailBox.innerHTML = `
                 <h3>
                     <div class="color-indicator" style="background: ${color}"></div>
@@ -799,12 +808,14 @@ function renderAll() {
             detailBox.className = 'detail-box';
             detailBox.innerHTML = '';
             detailBox.style.width = '';
+            document.querySelector('.chart-with-detail').classList.remove('comparison-mode');
         }
 
         function showComparisonBox(indices) {
             const detailBox = document.getElementById('detailBox');
             const n = indices.length;
             const profiles = indices.map(idx => ({ data: roastData[idx], color: colors[idx % colors.length] }));
+            document.querySelector('.chart-with-detail').classList.add('comparison-mode');
 
             detailBox.className = 'detail-box active';
 
@@ -1201,7 +1212,7 @@ function renderAll() {
                 });
 
                 if (clickedIdx !== null && closestDist < 20) {
-                    if (e.metaKey) {
+                    if (e.metaKey || e.ctrlKey) {
                         if (chartSelectedSet.has(clickedIdx)) {
                             chartSelectedSet.delete(clickedIdx);
                         } else {
@@ -1227,7 +1238,7 @@ function renderAll() {
 
                     renderTempChart();
                     e.stopPropagation();
-                } else if (!e.metaKey && chartSelectedSet.size > 0) {
+                } else if (!e.metaKey || e.ctrlKey && chartSelectedSet.size > 0) {
                     chartSelectedSet.clear();
                     hideDetailBox();
                     renderTempChart();
