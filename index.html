@@ -519,6 +519,7 @@ async function handleFiles(event) {
                 document.body.style.cursor = 'col-resize';
                 document.body.style.userSelect = 'none';
                 e.preventDefault();
+                e.stopPropagation();
             });
 
             document.addEventListener('mousemove', e => {
@@ -774,8 +775,9 @@ function renderAll() {
             const table = document.getElementById('dataTable');
             const detailBox = document.getElementById('detailBox');
             const chartContainer = document.getElementById('tempChartContainer');
+            const resizeHandle = document.getElementById('resizeHandle');
 
-            if (!table.contains(e.target) && !detailBox.contains(e.target) && !chartContainer.contains(e.target)) {
+            if (!table.contains(e.target) && !detailBox.contains(e.target) && !chartContainer.contains(e.target) && !resizeHandle.contains(e.target)) {
                 let changed = false;
                 if (lockedRoastIndex !== null) {
                     document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('locked'));
