@@ -193,16 +193,7 @@
 
         .chart-with-detail {
             display: flex;
-            gap: 20px;
             align-items: flex-start;
-        }
-
-        .chart-with-detail.comparison-mode {
-            flex-direction: column;
-        }
-
-        .chart-with-detail.comparison-mode .detail-box {
-            width: auto !important;
         }
 
         .detail-box {
@@ -211,6 +202,35 @@
             flex-shrink: 0;
             border-radius: 4px;
             padding: 20px;
+        }
+
+        .resize-handle {
+            display: none;
+            width: 14px;
+            flex-shrink: 0;
+            align-self: stretch;
+            cursor: col-resize;
+            position: relative;
+        }
+
+        .resize-handle.visible {
+            display: block;
+        }
+
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 6px;
+            width: 2px;
+            height: 100%;
+            background: #2a2a2a;
+            transition: background 0.15s;
+        }
+
+        .resize-handle:hover::after,
+        .resize-handle.dragging::after {
+            background: #555;
         }
 
         .detail-box.active {
@@ -364,6 +384,7 @@
                 <div class="chart-title">Temperaturkurver</div>
 <div class="chart-with-detail">
                     <div id="detailBox" class="detail-box"></div>
+                    <div id="resizeHandle" class="resize-handle"></div>
                     <div class="chart-wrapper" style="flex:1;min-width:0;">
                         <div class="chart-container" id="tempChartContainer">
                             <canvas id="tempChart"></canvas>
@@ -483,6 +504,38 @@ async function handleFiles(event) {
         });
 
         loadSavedData();
+
+        // Resize handle
+        (() => {
+            const handle = document.getElementById('resizeHandle');
+            const detailBox = document.getElementById('detailBox');
+            let dragging = false, startX, startW;
+
+            handle.addEventListener('mousedown', e => {
+                dragging = true;
+                startX = e.clientX;
+                startW = detailBox.offsetWidth;
+                handle.classList.add('dragging');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const newW = Math.max(160, Math.min(680, startW + (e.clientX - startX)));
+                detailBox.style.width = newW + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!dragging) return;
+                dragging = false;
+                handle.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                renderTempChart();
+            });
+        })();
 
         function parseBulletFile(text, filename) {
             const json = JSON.parse(text);
@@ -754,7 +807,7 @@ function renderAll() {
 
             detailBox.style.width = '';
             detailBox.className = 'detail-box active';
-            document.querySelector('.chart-with-detail').classList.remove('comparison-mode');
+            document.getElementById('resizeHandle').classList.add('visible');
             detailBox.innerHTML = `
                 <h3>
                     <div class="color-indicator" style="background: ${color}"></div>
@@ -831,15 +884,14 @@ function renderAll() {
             detailBox.className = 'detail-box';
             detailBox.innerHTML = '';
             detailBox.style.width = '';
-            document.querySelector('.chart-with-detail').classList.remove('comparison-mode');
+            document.getElementById('resizeHandle').classList.remove('visible');
         }
 
         function showComparisonBox(indices) {
             const detailBox = document.getElementById('detailBox');
             const n = indices.length;
             const profiles = indices.map(idx => ({ data: roastData[idx], color: colors[idx % colors.length] }));
-            document.querySelector('.chart-with-detail').classList.add('comparison-mode');
-
+            document.getElementById('resizeHandle').classList.add('visible');
             detailBox.className = 'detail-box active';
 
             const metrics = [
