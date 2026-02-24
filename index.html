@@ -509,7 +509,7 @@ async function handleFiles(event) {
         (() => {
             const handle = document.getElementById('resizeHandle');
             const detailBox = document.getElementById('detailBox');
-            let dragging = false, startX, startW;
+            let dragging = false, startX, startW, rafPending = false;
 
             handle.addEventListener('mousedown', e => {
                 dragging = true;
@@ -526,6 +526,13 @@ async function handleFiles(event) {
                 if (!dragging) return;
                 const newW = Math.max(160, Math.min(680, startW + (e.clientX - startX)));
                 detailBox.style.width = newW + 'px';
+                if (!rafPending) {
+                    rafPending = true;
+                    requestAnimationFrame(() => {
+                        renderTempChart();
+                        rafPending = false;
+                    });
+                }
             });
 
             document.addEventListener('mouseup', () => {
