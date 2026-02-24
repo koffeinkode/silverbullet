@@ -938,17 +938,19 @@ function renderAll() {
             const valWidth = Math.max(38, Math.floor(availW / n));
 
             const colTemplate = `${labelWidth}px ${profiles.map(() => `${valWidth}px`).join(' ')}`;
+            const fontSize = Math.max(9, Math.min(14, Math.round(valWidth * 0.18)));
+            const nameFontSize = Math.max(8, fontSize - 1);
             const rowBorder = 'border-bottom:1px solid #1c1c1c';
             const cellBase = `padding:4px 3px;${rowBorder};font-family:'SF Mono',monospace;`;
 
-            let html = `<div style="display:grid;grid-template-columns:${colTemplate};column-gap:${gapSize}px;font-size:11px;">`;
+            let html = `<div style="display:grid;grid-template-columns:${colTemplate};column-gap:${gapSize}px;font-size:${fontSize}px;">`;
 
             // Profilnavn-header
             html += `<div style="${cellBase}color:#333;padding-bottom:12px;"></div>`;
             profiles.forEach(p => {
                 html += `<div style="${cellBase}padding-bottom:12px;display:flex;flex-direction:column;align-items:center;gap:5px;overflow:hidden;">
                     <div style="width:10px;height:10px;background:${p.color};border-radius:2px;flex-shrink:0;"></div>
-                    <span style="color:#aaa;font-size:9px;text-align:center;line-height:1.3;word-break:break-word;width:${valWidth}px;">${p.data.filename}</span>
+                    <span style="color:#aaa;font-size:${nameFontSize}px;text-align:center;line-height:1.3;word-break:break-word;width:${valWidth}px;">${p.data.filename}</span>
                 </div>`;
             });
 
@@ -960,7 +962,73 @@ function renderAll() {
             });
 
             html += '</div>';
+
+            // Mini-grafer
+            const sharedMaxTime = Math.max(...profiles.map(p => p.data.roastEnd));
+            html += `<div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;">`;
+            profiles.forEach((p, i) => {
+                html += `<div style="position:relative;">
+                    <canvas id="miniChart_${i}" style="width:100%;height:60px;display:block;border-radius:3px;background:#0d0d0d;"></canvas>
+                </div>`;
+            });
+            html += '</div>';
+
             detailBox.innerHTML = html;
+
+            // Render mini-grafer etter layout
+            requestAnimationFrame(() => {
+                profiles.forEach((p, i) => {
+                    const canvas = document.getElementById(`miniChart_${i}`);
+                    if (!canvas) return;
+                    renderMiniChart(canvas, p.data, p.color, sharedMaxTime);
+                });
+            });
+        }
+
+        function renderMiniChart(canvas, data, color, sharedMaxTime) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const w = canvas.offsetWidth;
+            const h = canvas.offsetHeight;
+            const pad = { top: 5, right: 5, bottom: 5, left: 5 };
+
+            const maxTime = sharedMaxTime || data.roastEnd;
+            const roastPoints = data.tempData.filter(p => p.inRoast);
+            const maxTemp = Math.max(...roastPoints.map(p => p.temp));
+            const minTemp = Math.min(...roastPoints.map(p => p.temp));
+            const range = maxTemp - minTemp || 1;
+
+            const tx = t => pad.left + (t / maxTime) * (w - pad.left - pad.right);
+            const ty = temp => h - pad.bottom - ((temp - minTemp) / range) * (h - pad.top - pad.bottom);
+
+            // Brennekurve
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            let started = false;
+            roastPoints.forEach(pt => {
+                if (!started) { ctx.moveTo(tx(pt.time), ty(pt.temp)); started = true; }
+                else ctx.lineTo(tx(pt.time), ty(pt.temp));
+            });
+            ctx.stroke();
+
+            // FC-dot
+            if (data.firstCrack && data.firstCrackTemp) {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(tx(data.firstCrack), ty(data.firstCrackTemp), 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Profilnavn
+            ctx.fillStyle = '#555';
+            ctx.font = `${8 * dpr / dpr}px SF Mono`;
+            ctx.textAlign = 'left';
+            ctx.fillText(data.filename, pad.left + 2, pad.top + 7);
         }
 
         function drawEventMarker(ctx, x, y, color, label, padding, height) {
