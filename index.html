@@ -1173,7 +1173,7 @@ function renderAll() {
 
             const singleData = activeIndex !== null ? roastData[activeIndex] : (chartSelectedSet.size === 1 ? roastData[[...chartSelectedSet][0]] : null);
             const hasActions = singleData && singleData.actionEvents && singleData.actionEvents.length > 0;
-            const stripH = (singleData && hasActions) ? 96 : 0;
+            const stripH = (singleData && hasActions && chartSelectedSet.size <= 1) ? 96 : 0;
             const chartH = 500;
             const totalH = chartH + stripH;
 
@@ -1366,7 +1366,7 @@ function renderAll() {
             }
 
             // P/F/D action strip
-            if (singleData && hasActions) {
+            if (singleData && hasActions && chartSelectedSet.size <= 1) {
                 const actions = singleData.actionEvents;
                 const ctrlColors = ['#f97316', '#60a5fa', '#9ca3af'];
                 const ctrlLabels = ['Power', 'Fan', 'Drum'];
