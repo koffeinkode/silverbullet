@@ -530,6 +530,7 @@ async function handleFiles(event) {
                     rafPending = true;
                     requestAnimationFrame(() => {
                         renderTempChart();
+                        if (chartSelectedSet.size > 1) showComparisonBox([...chartSelectedSet]);
                         rafPending = false;
                     });
                 }
@@ -921,15 +922,20 @@ function renderAll() {
                 { label: 'RoR slutt',  fn: d => d.endRor.toFixed(1) },
             ];
 
-            const maxBoxWidth = 520;
             const labelWidth = 65;
             const boxPadding = 40;
             const gapSize = 6;
             const gapTotal = n * gapSize;
-            const valWidth = Math.max(38, Math.min(58, Math.floor((maxBoxWidth - boxPadding - labelWidth - gapTotal) / n)));
-            const boxWidth = Math.min(maxBoxWidth, boxPadding + labelWidth + n * valWidth + gapTotal);
 
-            detailBox.style.width = boxWidth + 'px';
+            // Sett initial bredde bare hvis boksen er for smal
+            const minNeeded = boxPadding + labelWidth + n * 38 + gapTotal;
+            if (detailBox.offsetWidth < minNeeded) {
+                detailBox.style.width = Math.min(520, boxPadding + labelWidth + n * 55 + gapTotal) + 'px';
+            }
+
+            // Beregn kolonnebredde basert på gjeldende boksbredde
+            const availW = detailBox.offsetWidth - boxPadding - labelWidth - gapTotal;
+            const valWidth = Math.max(38, Math.floor(availW / n));
 
             const colTemplate = `${labelWidth}px ${profiles.map(() => `${valWidth}px`).join(' ')}`;
             const rowBorder = 'border-bottom:1px solid #1c1c1c';
