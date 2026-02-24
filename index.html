@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilverBullet Brenneanalyse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .file-input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .file-input-section > div {
+            flex: 1;
+        }
+
+        .reset-button {
+            padding: 10px 20px;
+            background: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .reset-button:hover {
+            background: #444;
+            border-color: #666;
+        }
+
+        .reset-button:active {
+            background: #222;
+        }
+
+        .file-input-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: #555;
+        }
+
+        .data-table {
+            width: 100%;
+            margin-bottom: 40px;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .data-table th {
+            background: #0a0a0a;
+            color: #999;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-table td {
+            color: #e0e0e0;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: #222;
+        }
+
+        .data-table tbody tr.highlighted {
+            background: #2a2a2a;
+        }
+
+        .data-table tbody tr.locked {
+            background: #2a2a2a;
+            border-left: 3px solid #fff;
+        }
+
+        .data-table tbody tr.table-selected {
+            background: #1e1e1e;
+            border-left: 3px solid var(--sel-color, #3b82f6);
+        }
+
+        .roast-name {
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .chart-section {
+            margin-bottom: 40px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 20px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 500px;
+            cursor: crosshair;
+        }
+
+        .chart-with-detail {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .detail-box {
+            display: none;
+            width: 260px;
+            flex-shrink: 0;
+            border-radius: 4px;
+            padding: 20px;
+        }
+
+        .detail-box.active {
+            display: block;
+            background: #0a0a0a;
+            border: 1px solid #555;
+        }
+
+
+        .detail-box h3 {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #999;
+        }
+
+        .detail-value {
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+
+.chart-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            color: #fff;
+            line-height: 1.6;
+            white-space: nowrap;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 1px;
+        }
+
+        .no-data {
+            color: #666;
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 14px;
+        }
+
+        .data-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 20px;
+        }
+
+        .data-table th.sortable:hover {
+            color: #fff;
+        }
+
+        .data-table th.sortable.sorted::after {
+            content: '▼';
+            position: absolute;
+            right: 5px;
+            font-size: 10px;
+        }
+
+        .data-table th.sortable.sorted.asc::after {
+            content: '▲';
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SilverBullet Brenneanalyse</h1>
+
+        <div class="file-input-section">
+            <div>
+                <label for="fileInput">Velg Bullet JSON-filer</label>
+                <input type="file" id="fileInput" multiple>
+            </div>
+            <button class="reset-button" id="resetButton">Nullstill</button>
+        </div>
+
+        <div id="dataSection" style="display: none;">
+            <div class="chart-section">
+                <div class="chart-title">Nøkkeldata</div>
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="filename">Brennenavn</th>
+                            <th class="sortable" data-sort="weightGreen">Grønnkaffe</th>
+                            <th class="sortable" data-sort="weightLoss">Weight loss</th>
+                            <th class="sortable" data-sort="colorLevel">Farge</th>
+                            <th class="sortable" data-sort="roastEnd">Totaltid</th>
+                            <th class="sortable" data-sort="yellowing">Yellow</th>
+                            <th class="sortable" data-sort="firstCrack">FC</th>
+                            <th class="sortable" data-sort="devTime">Utv.tid</th>
+                            <th class="sortable" data-sort="firstCrackTemp">FC°</th>
+                            <th class="sortable" data-sort="endTemp">Slutt°</th>
+                            <th class="sortable" data-sort="tempDelta">Δ°</th>
+                            <th class="sortable" data-sort="avgRor">RoR snitt</th>
+                            <th class="sortable" data-sort="maxRor">RoR maks</th>
+                            <th class="sortable" data-sort="endRor">RoR slutt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-title">Temperaturkurver</div>
+<div class="chart-with-detail">
+                    <div id="detailBox" class="detail-box"></div>
+                    <div class="chart-wrapper" style="flex:1;min-width:0;">
+                        <div class="chart-container" id="tempChartContainer">
+                            <canvas id="tempChart"></canvas>
+                            <svg id="tempChartLine" style="position:absolute;top:20px;left:20px;width:calc(100% - 40px);height:500px;pointer-events:none;overflow:visible;"></svg>
+                            <div class="chart-tooltip" id="tempTooltip"></div>
+                            <div class="legend" id="tempLegend"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section" style="display:none;">
+                <div class="chart-title">Rate of Rise (RoR)</div>
+                <div class="chart-container" id="rorChartContainer">
+                    <canvas id="rorChart"></canvas>
+                    <svg id="rorChartLine" style="position:absolute;top:20px;left:20px;width:calc(100% - 40px);height:500px;pointer-events:none;overflow:visible;"></svg>
+                    <div class="chart-tooltip" id="rorTooltip"></div>
+                    <div class="legend" id="rorLegend"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="noData" class="no-data">
+            Last opp Aillio Bullet JSON-filer for å se analyse<br><br>
+            <button onclick="loadExamples()" style="padding:10px 20px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">Last inn eksempelfiler</button>
+        </div>
+    </div>
+
+    <script>
+        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+        let roastData = [];
+        let tempChartData = { padding: null, maxTime: 0, maxTemp: 0 };
+        let rorChartData = { padding: null, maxTime: 0, maxRor: 0 };
+        let hoveredRoastIndex = null;
+        let lockedRoastIndex = null;
+        let chartSelectedSet = new Set();
+        let currentSort = { key: null, ascending: true };
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('sb_roastData');
+            if (saved) {
+                roastData = JSON.parse(saved);
+                if (roastData.length > 0) {
+                    document.getElementById('noData').style.display = 'none';
+                    document.getElementById('dataSection').style.display = 'block';
+                    renderAll();
+                }
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('sb_roastData', JSON.stringify(roastData));
+        }
+
+        document.getElementById('fileInput').addEventListener('change', handleFiles);
+        document.getElementById('resetButton').addEventListener('click', resetAll);
+
+async function handleFiles(event) {
+            const files = Array.from(event.target.files);
+
+            for (const file of files) {
+                const text = await file.text();
+                try {
+                    const data = parseBulletFile(text, file.name);
+                    roastData.push(data);
+                } catch (e) {
+                    console.error('Kunne ikke parse', file.name, e);
+                }
+            }
+
+            if (roastData.length > 0) {
+                document.getElementById('noData').style.display = 'none';
+                document.getElementById('dataSection').style.display = 'block';
+                saveData();
+                renderAll();
+            }
+
+            event.target.value = '';
+        }
+
+        async function loadExamples() {
+            const files = [
+                '3krBhho_g_i6d3iMXuQDw', '44KpSQyhh62DyEB6Y8nkZ', 'DBDKc4aLXHZ_SxKzOk7j-',
+                'bTj82ja_Wcou2-rDCqW7L', 'cXrs9eE77phMxm2ZtOAtM', 'gfenpD39LvXQmWYPQVj8H',
+                'nRe282SJ7_wBh0jYro2QG', 'phNYqhsD5XJ5rbaGES0A9', 'rNrY9V01tlvU0MNqOYPod',
+                'sA_sVkzQ4b5K8WmJTVrHz', 'tJy5X5tavrPPukh3AP_89', 'vFb9SLWpFwAKRFYoDglaq',
+                'x_L8h00Rjk_1DODi_U3lZ'
+            ];
+            for (const f of files) {
+                try {
+                    const res = await fetch('brenninger/' + f);
+                    const text = await res.text();
+                    const data = parseBulletFile(text, f);
+                    roastData.push(data);
+                } catch (e) { console.error('Kunne ikke laste', f, e); }
+            }
+            if (roastData.length > 0) {
+                document.getElementById('noData').style.display = 'none';
+                document.getElementById('dataSection').style.display = 'block';
+                saveData();
+                renderAll();
+            }
+        }
+
+        function resetAll() {
+            roastData = [];
+            localStorage.removeItem('sb_roastData');
+            document.getElementById('noData').style.display = 'block';
+            document.getElementById('dataSection').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+        }
+
+        document.querySelectorAll('.data-table th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                sortData(th.dataset.sort);
+            });
+        });
+
+        loadSavedData();
+
+        function parseBulletFile(text, filename) {
+            const json = JSON.parse(text);
+
+            const sampleRate = json.sampleRate || 1;
+            const startIdx = json.roastStartIndex || 0;
+            const endIdx = json.roastEndIndex || json.beanTemperature.length;
+
+            const toTime = (idx) => (idx - startIdx) / sampleRate;
+
+            const fcIdx = json.indexFirstCrackStart > 0 ? json.indexFirstCrackStart : null;
+            const yellowIdx = json.indexYellowingStart > 0 ? json.indexYellowingStart : null;
+
+            const weightGreen = json.weightGreen || null;
+            const weightRoasted = json.weightRoasted || null;
+            const weightLoss = (weightGreen && weightRoasted)
+                ? ((weightGreen - weightRoasted) / weightGreen * 100)
+                : null;
+            const colorLevel = json.groundColorLevel ? json.groundColorLevel.value : null;
+
+            const roastEnd = json.totalRoastTime || toTime(endIdx);
+            const firstCrack = fcIdx !== null ? toTime(fcIdx) : null;
+            const yellowing = yellowIdx !== null ? toTime(yellowIdx) : null;
+            const firstCrackTemp = fcIdx !== null ? json.beanTemperature[fcIdx] : null;
+            const endTemp = json.beanDropTemperature || json.beanTemperature[endIdx - 1] || null;
+
+            const tempData = [];
+            const rorData = [];
+            let rorSum = 0;
+            let rorCount = 0;
+            let maxRor = 0;
+            let endRor = 0;
+
+            const coolingEnd = Math.min(endIdx + Math.round(30 * sampleRate), json.beanTemperature.length);
+            for (let i = startIdx; i < coolingEnd; i++) {
+                const time = toTime(i);
+                const temp = json.beanTemperature[i];
+                const ror = json.beanDerivative[i] || 0;
+                const inRoast = i < endIdx;
+
+                tempData.push({ time, temp, inRoast });
+                rorData.push({ time, ror, inRoast });
+
+                if (inRoast && !isNaN(ror)) {
+                    rorSum += ror;
+                    rorCount++;
+                    if (ror > maxRor) maxRor = ror;
+                }
+
+                if (inRoast && i >= endIdx - 3) {
+                    endRor = ror;
+                }
+            }
+
+            const avgRor = rorCount > 0 ? rorSum / rorCount : 0;
+
+            return {
+                filename: json.roastName || filename,
+                weightGreen,
+                weightRoasted,
+                weightLoss,
+                colorLevel,
+                roastEnd,
+                yellowing,
+                firstCrack,
+                firstCrackTemp,
+                endTemp,
+                tempData,
+                rorData,
+                avgRor,
+                maxRor,
+                endRor,
+            };
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+function renderAll() {
+            renderDataTable();
+            renderTempChart();
+            renderRorChart();
+        }
+
+        function sortData(key) {
+            if (currentSort.key === key) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.key = key;
+                currentSort.ascending = true;
+            }
+
+            roastData.sort((a, b) => {
+                let aVal = a[key];
+                let bVal = b[key];
+
+                if (key === 'devTime') {
+                    aVal = (a.firstCrack && a.roastEnd) ? (a.roastEnd - a.firstCrack) : -1;
+                    bVal = (b.firstCrack && b.roastEnd) ? (b.roastEnd - b.firstCrack) : -1;
+                }
+
+                if (key === 'tempDelta') {
+                    aVal = (a.firstCrackTemp && a.endTemp) ? (a.endTemp - a.firstCrackTemp) : -999;
+                    bVal = (b.firstCrackTemp && b.endTemp) ? (b.endTemp - b.firstCrackTemp) : -999;
+                }
+
+                if (aVal === null || aVal === undefined) aVal = -999;
+                if (bVal === null || bVal === undefined) bVal = -999;
+
+                if (key === 'filename') {
+                    return currentSort.ascending
+                        ? aVal.localeCompare(bVal, 'no')
+                        : bVal.localeCompare(aVal, 'no');
+                }
+
+                return currentSort.ascending ? aVal - bVal : bVal - aVal;
+            });
+
+            saveData();
+            renderDataTable();
+        }
+
+        function renderDataTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+
+            document.querySelectorAll('.data-table th.sortable').forEach(th => {
+                th.classList.remove('sorted', 'asc');
+                if (th.dataset.sort === currentSort.key) {
+                    th.classList.add('sorted');
+                    if (currentSort.ascending) th.classList.add('asc');
+                }
+            });
+
+            roastData.forEach((data, idx) => {
+                const color = colors[idx % colors.length];
+                const tempDelta = (data.firstCrackTemp && data.endTemp)
+                    ? (data.endTemp - data.firstCrackTemp).toFixed(1) + '°C'
+                    : '-';
+                const devTime = (data.firstCrack && data.roastEnd)
+                    ? formatTime(data.roastEnd - data.firstCrack)
+                    : '-';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="roast-name">
+                        <div class="color-indicator" style="background: ${color}"></div>
+                        <span>${data.filename}</span>
+                    </td>
+                    <td>${data.weightGreen !== null ? data.weightGreen + 'g' : '-'}</td>
+                    <td>${data.weightLoss !== null ? data.weightLoss.toFixed(1) + '%' : '-'}</td>
+                    <td>${data.colorLevel !== null && data.colorLevel !== undefined ? data.colorLevel.toFixed(1) : '-'}</td>
+                    <td>${formatTime(data.roastEnd)}</td>
+                    <td>${data.yellowing ? formatTime(data.yellowing) : '-'}</td>
+                    <td>${data.firstCrack ? formatTime(data.firstCrack) : '-'}</td>
+                    <td>${devTime}</td>
+                    <td>${data.firstCrackTemp ? data.firstCrackTemp.toFixed(1) + '°C' : '-'}</td>
+                    <td>${data.endTemp ? data.endTemp.toFixed(1) + '°C' : '-'}</td>
+                    <td>${tempDelta}</td>
+                    <td>${data.avgRor.toFixed(1)}°C/min</td>
+                    <td>${data.maxRor.toFixed(1)}°C/min</td>
+                    <td>${data.endRor.toFixed(1)}°C/min</td>
+                `;
+
+                row.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.metaKey) {
+                        lockedRoastIndex = null;
+                        document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('locked'));
+                        if (chartSelectedSet.has(idx)) {
+                            chartSelectedSet.delete(idx);
+                            row.classList.remove('table-selected');
+                        } else {
+                            chartSelectedSet.add(idx);
+                            row.style.setProperty('--sel-color', colors[idx % colors.length]);
+                            row.classList.add('table-selected');
+                        }
+                        if (chartSelectedSet.size === 1) {
+                            showDetailBox(roastData[[...chartSelectedSet][0]], [...chartSelectedSet][0]);
+                        } else if (chartSelectedSet.size > 1) {
+                            showComparisonBox([...chartSelectedSet]);
+                        } else {
+                            hideDetailBox();
+                        }
+                    } else {
+                        chartSelectedSet.clear();
+                        document.querySelectorAll('.data-table tbody tr').forEach(r => {
+                            r.classList.remove('locked');
+                            r.classList.remove('table-selected');
+                        });
+                        row.classList.add('locked');
+                        lockedRoastIndex = idx;
+                        showDetailBox(data, idx);
+                    }
+                    renderTempChart();
+                });
+
+                row.addEventListener('mouseenter', () => {
+                    if (lockedRoastIndex === null && chartSelectedSet.size === 0) {
+                        hoveredRoastIndex = idx;
+                        showDetailBox(data, idx);
+                        renderTempChart();
+                    }
+                });
+
+                tbody.appendChild(row);
+            });
+
+            const table = document.getElementById('dataTable');
+            table.addEventListener('mouseleave', () => {
+                if (lockedRoastIndex === null && chartSelectedSet.size === 0) {
+                    hoveredRoastIndex = null;
+                    hideDetailBox();
+                    renderTempChart();
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const table = document.getElementById('dataTable');
+            const detailBox = document.getElementById('detailBox');
+            const chartContainer = document.getElementById('tempChartContainer');
+
+            if (!table.contains(e.target) && !detailBox.contains(e.target) && !chartContainer.contains(e.target)) {
+                let changed = false;
+                if (lockedRoastIndex !== null) {
+                    document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('locked'));
+                    lockedRoastIndex = null;
+                    hoveredRoastIndex = null;
+                    changed = true;
+                }
+                if (chartSelectedSet.size > 0) {
+                    document.querySelectorAll('.data-table tbody tr.table-selected').forEach(r => r.classList.remove('table-selected'));
+                    chartSelectedSet.clear();
+                    changed = true;
+                }
+                if (changed) {
+                    hideDetailBox();
+                    renderTempChart();
+                }
+            }
+        });
+
+        function showDetailBox(data, idx) {
+            const detailBox = document.getElementById('detailBox');
+            const color = colors[idx % colors.length];
+            const tempDelta = (data.firstCrackTemp && data.endTemp)
+                ? (data.endTemp - data.firstCrackTemp).toFixed(1) + '°C'
+                : '-';
+            const devTime = (data.firstCrack && data.roastEnd)
+                ? formatTime(data.roastEnd - data.firstCrack)
+                : '-';
+
+            detailBox.style.width = '';
+            detailBox.className = 'detail-box active';
+            detailBox.innerHTML = `
+                <h3>
+                    <div class="color-indicator" style="background: ${color}"></div>
+                    ${data.filename}
+                </h3>
+                <div class="detail-item">
+                    <span class="detail-label">Grønnkaffe</span>
+                    <span class="detail-value">${data.weightGreen !== null ? data.weightGreen + 'g' : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Vekttap</span>
+                    <span class="detail-value">${data.weightLoss !== null ? data.weightLoss.toFixed(1) + '%' : '-'}</span>
+                </div>
+                ${data.colorLevel !== null && data.colorLevel !== undefined ? `
+                <div class="detail-item">
+                    <span class="detail-label">Fargeverdi</span>
+                    <span class="detail-value">${data.colorLevel.toFixed(1)}</span>
+                </div>` : ''}
+                <div class="detail-item">
+                    <span class="detail-label">Totaltid</span>
+                    <span class="detail-value">${formatTime(data.roastEnd)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Yellow</span>
+                    <span class="detail-value">${data.yellowing ? formatTime(data.yellowing) : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">First Crack</span>
+                    <span class="detail-value">${data.firstCrack ? formatTime(data.firstCrack) : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Utviklingstid</span>
+                    <span class="detail-value">${devTime}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">FC temperatur</span>
+                    <span class="detail-value">${data.firstCrackTemp ? data.firstCrackTemp.toFixed(1) + '°C' : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Slutttemp</span>
+                    <span class="detail-value">${data.endTemp ? data.endTemp.toFixed(1) + '°C' : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Δ temperatur</span>
+                    <span class="detail-value">${tempDelta}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">RoR snitt</span>
+                    <span class="detail-value">${data.avgRor.toFixed(1)}°C/min</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">RoR maks</span>
+                    <span class="detail-value">${data.maxRor.toFixed(1)}°C/min</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">RoR slutt</span>
+                    <span class="detail-value">${data.endRor.toFixed(1)}°C/min</span>
+                </div>
+            `;
+        }
+
+        function hideDetailBox() {
+            const detailBox = document.getElementById('detailBox');
+            detailBox.className = 'detail-box';
+            detailBox.innerHTML = '';
+            detailBox.style.width = '';
+        }
+
+        function showComparisonBox(indices) {
+            const detailBox = document.getElementById('detailBox');
+            const n = indices.length;
+            const profiles = indices.map(idx => ({ data: roastData[idx], color: colors[idx % colors.length] }));
+
+            detailBox.className = 'detail-box active';
+
+            const metrics = [
+                { label: 'Grønnkaffe', fn: d => d.weightGreen != null ? d.weightGreen + 'g' : '—' },
+                { label: 'Vekttap',    fn: d => d.weightLoss != null ? d.weightLoss.toFixed(1) + '%' : '—' },
+                { label: 'Farge',      fn: d => d.colorLevel != null ? d.colorLevel.toFixed(1) : '—' },
+                { label: 'Totaltid',   fn: d => formatTime(d.roastEnd) },
+                { label: 'Yellow',     fn: d => d.yellowing ? formatTime(d.yellowing) : '—' },
+                { label: 'FC',         fn: d => d.firstCrack ? formatTime(d.firstCrack) : '—' },
+                { label: 'Utv.tid',    fn: d => (d.firstCrack && d.roastEnd) ? formatTime(d.roastEnd - d.firstCrack) : '—' },
+                { label: 'FC°',        fn: d => d.firstCrackTemp ? d.firstCrackTemp.toFixed(1) + '°' : '—' },
+                { label: 'Slutt°',     fn: d => d.endTemp ? d.endTemp.toFixed(1) + '°' : '—' },
+                { label: 'Δ°',         fn: d => (d.firstCrackTemp && d.endTemp) ? (d.endTemp - d.firstCrackTemp).toFixed(1) + '°' : '—' },
+                { label: 'RoR snitt',  fn: d => d.avgRor.toFixed(1) },
+                { label: 'RoR maks',   fn: d => d.maxRor.toFixed(1) },
+                { label: 'RoR slutt',  fn: d => d.endRor.toFixed(1) },
+            ];
+
+            const maxBoxWidth = 520;
+            const labelWidth = 65;
+            const boxPadding = 40;
+            const gapSize = 6;
+            const gapTotal = n * gapSize;
+            const valWidth = Math.max(38, Math.min(58, Math.floor((maxBoxWidth - boxPadding - labelWidth - gapTotal) / n)));
+            const boxWidth = Math.min(maxBoxWidth, boxPadding + labelWidth + n * valWidth + gapTotal);
+
+            detailBox.style.width = boxWidth + 'px';
+
+            const colTemplate = `${labelWidth}px ${profiles.map(() => `${valWidth}px`).join(' ')}`;
+            const rowBorder = 'border-bottom:1px solid #1c1c1c';
+            const cellBase = `padding:4px 3px;${rowBorder};font-family:'SF Mono',monospace;`;
+
+            let html = `<div style="display:grid;grid-template-columns:${colTemplate};column-gap:${gapSize}px;font-size:11px;">`;
+
+            // Profilnavn-header
+            html += `<div style="${cellBase}color:#333;padding-bottom:12px;"></div>`;
+            profiles.forEach(p => {
+                html += `<div style="${cellBase}padding-bottom:12px;display:flex;flex-direction:column;align-items:center;gap:5px;overflow:hidden;">
+                    <div style="width:10px;height:10px;background:${p.color};border-radius:2px;flex-shrink:0;"></div>
+                    <span style="color:#aaa;font-size:9px;text-align:center;line-height:1.3;word-break:break-word;width:${valWidth}px;">${p.data.filename}</span>
+                </div>`;
+            });
+
+            metrics.forEach(m => {
+                html += `<div style="${cellBase}color:#555;white-space:nowrap;">${m.label}</div>`;
+                profiles.forEach(p => {
+                    html += `<div style="${cellBase}text-align:right;color:#e0e0e0;font-weight:600;">${m.fn(p.data)}</div>`;
+                });
+            });
+
+            html += '</div>';
+            detailBox.innerHTML = html;
+        }
+
+        function drawEventMarker(ctx, x, y, color, label, padding, height) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(x, padding.top);
+            ctx.lineTo(x, height - padding.bottom);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = color;
+            ctx.font = '10px SF Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, padding.top - 4);
+        }
+
+        function renderTempChart() {
+            const canvas = document.getElementById('tempChart');
+            const ctx = canvas.getContext('2d');
+            const legend = document.getElementById('tempLegend');
+
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = 500 * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const width = canvas.offsetWidth;
+            const height = 500;
+
+            const activeIndex = lockedRoastIndex !== null ? lockedRoastIndex : hoveredRoastIndex;
+
+            const padding = activeIndex !== null
+                ? { top: 20, right: 60, bottom: 40, left: 60 }
+                : { top: 20, right: 20, bottom: 40, left: 60 };
+
+            ctx.clearRect(0, 0, width, height);
+
+            const dataToShow = activeIndex !== null ? [roastData[activeIndex]] : roastData;
+
+            let maxTime = 0;
+            let maxTemp = 0;
+            let maxRor = 0;
+
+            dataToShow.forEach(data => {
+                data.tempData.forEach(point => {
+                    if (point.time > maxTime) maxTime = point.time;
+                    if (point.temp > maxTemp) maxTemp = point.temp;
+                });
+                if (activeIndex !== null) {
+                    data.rorData.forEach(point => {
+                        if (point.inRoast !== false && point.ror > maxRor) maxRor = point.ror;
+                    });
+                }
+            });
+
+            tempChartData = { padding, maxTime, maxTemp, width, height };
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (height - padding.top - padding.bottom) * i / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+
+                const temp = maxTemp * (1 - i / 5);
+                ctx.fillStyle = '#666';
+                ctx.font = '11px SF Mono';
+                ctx.textAlign = 'right';
+                ctx.fillText(temp.toFixed(0) + '°C', padding.left - 10, y + 4);
+
+                if (activeIndex !== null) {
+                    const ror = maxRor * (1 - i / 5);
+                    ctx.textAlign = 'left';
+                    ctx.fillText(ror.toFixed(0), width - padding.right + 10, y + 4);
+                }
+            }
+
+            for (let i = 0; i <= 10; i++) {
+                const x = padding.left + (width - padding.left - padding.right) * i / 10;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
+                ctx.stroke();
+
+                const time = maxTime * i / 10;
+                ctx.fillStyle = '#666';
+                ctx.font = '11px SF Mono';
+                ctx.textAlign = 'center';
+                ctx.fillText(formatTime(time), x, height - padding.bottom + 20);
+            }
+
+            // Draw RoR curves (dashed, only in single-roast view)
+            if (activeIndex !== null) {
+                dataToShow.forEach((data, idx) => {
+                    const actualIdx = activeIndex !== null ? activeIndex : idx;
+                    const color = colors[actualIdx % colors.length];
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.globalAlpha = 0.6;
+                    ctx.setLineDash([5, 4]);
+
+                    ctx.beginPath();
+                    let started = false;
+                    data.rorData.forEach(point => {
+                        if (point.inRoast === false) return;
+                        const x = padding.left + (point.time / maxTime) * (width - padding.left - padding.right);
+                        const y = height - padding.bottom - (Math.max(0, point.ror) / maxRor) * (height - padding.top - padding.bottom);
+                        if (!started) { ctx.moveTo(x, y); started = true; }
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.globalAlpha = 1;
+                });
+            }
+
+            // Draw temp lines
+            legend.innerHTML = '';
+            dataToShow.forEach((data, idx) => {
+                const actualIdx = activeIndex !== null ? activeIndex : idx;
+                const color = colors[actualIdx % colors.length];
+                const originalData = data;
+
+                const isDimmed = chartSelectedSet.size > 0 && activeIndex === null && !chartSelectedSet.has(idx);
+
+                // Brenneperiode — solid linje
+                ctx.strokeStyle = color;
+                ctx.lineWidth = isDimmed ? 1 : 2;
+                ctx.globalAlpha = isDimmed ? 0.15 : 1;
+                ctx.beginPath();
+                let started = false;
+                let lastX = 0, lastY = 0;
+                data.tempData.forEach(point => {
+                    if (point.inRoast === false) return;
+                    const x = padding.left + (point.time / maxTime) * (width - padding.left - padding.right);
+                    const y = height - padding.bottom - (point.temp / maxTemp) * (height - padding.top - padding.bottom);
+                    if (!started) { ctx.moveTo(x, y); started = true; }
+                    else ctx.lineTo(x, y);
+                    lastX = x; lastY = y;
+                });
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+
+                // Kjøleperiode — samme farge, halvgjennomsiktig
+                ctx.globalAlpha = isDimmed ? 0.07 : 0.5;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                let coolingStarted = false;
+                data.tempData.forEach(point => {
+                    if (point.inRoast !== false) return;
+                    const x = padding.left + (point.time / maxTime) * (width - padding.left - padding.right);
+                    const y = height - padding.bottom - (point.temp / maxTemp) * (height - padding.top - padding.bottom);
+                    if (!coolingStarted) { ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); coolingStarted = true; }
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+
+                // Yellowing marker
+                if (originalData.yellowing) {
+                    const yx = padding.left + (originalData.yellowing / maxTime) * (width - padding.left - padding.right);
+                    drawEventMarker(ctx, yx, 0, '#f59e0b', 'Y', padding, height);
+                }
+
+                // FC marker
+                if (originalData.firstCrack && originalData.firstCrackTemp) {
+                    const fcX = padding.left + (originalData.firstCrack / maxTime) * (width - padding.left - padding.right);
+                    const fcY = height - padding.bottom - (originalData.firstCrackTemp / maxTemp) * (height - padding.top - padding.bottom);
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 6;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.arc(fcX, fcY, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(fcX, fcY, 6, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(fcX, fcY, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // FERDIG-markør
+                const endX = padding.left + (data.roastEnd / maxTime) * (width - padding.left - padding.right);
+                drawEventMarker(ctx, endX, 0, '#777', 'FERDIG', padding, height);
+
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `
+                    <div class="legend-color" style="background: ${color}"></div>
+                    <span>${originalData.filename}</span>
+                `;
+                legend.appendChild(item);
+            });
+
+            if (activeIndex !== null) {
+                const rorLegendItem = document.createElement('div');
+                rorLegendItem.className = 'legend-item';
+                rorLegendItem.innerHTML = `<div style="width:20px;height:2px;border-top:2px dashed #999;flex-shrink:0;margin-top:1px;"></div><span>RoR (°C/min, stiplet)</span>`;
+                legend.appendChild(rorLegendItem);
+            }
+
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const tooltip = document.getElementById('tempTooltip');
+                const svg = document.getElementById('tempChartLine');
+
+                if (x >= padding.left && x <= width - padding.right) {
+                    const time = ((x - padding.left) / (width - padding.left - padding.right)) * maxTime;
+
+                    let closestDist = Infinity;
+                    let closestName = null;
+                    let closestTemp = null;
+                    let closestColor = null;
+                    let closestCurveY = y;
+
+                    let closestData = null;
+                    dataToShow.forEach((data, idx) => {
+                        const actualIdx = activeIndex !== null ? activeIndex : idx;
+                        // Ignorer kurver som ikke er i utvalget
+                        if (chartSelectedSet.size > 0 && !chartSelectedSet.has(actualIdx)) return;
+                        let nearest = null;
+                        let nearestTimeDist = Infinity;
+                        data.tempData.forEach(point => {
+                            const d = Math.abs(point.time - time);
+                            if (d < nearestTimeDist) { nearestTimeDist = d; nearest = point; }
+                        });
+                        if (nearest) {
+                            const pointY = height - padding.bottom - (nearest.temp / maxTemp) * (height - padding.top - padding.bottom);
+                            const dist = Math.abs(pointY - y);
+                            if (dist < closestDist) {
+                                closestDist = dist;
+                                closestName = dataToShow[idx].filename;
+                                closestTemp = nearest.temp;
+                                closestColor = colors[actualIdx % colors.length];
+                                closestCurveY = pointY;
+                                closestData = data;
+                            }
+                        }
+                    });
+
+                    // RoR for den nærmeste kurven
+                    let nearestRor = null;
+                    if (closestData !== null) {
+                        let nearestRorDist = Infinity;
+                        closestData.rorData.forEach(point => {
+                            if (point.inRoast === false) return;
+                            const d = Math.abs(point.time - time);
+                            if (d < nearestRorDist) { nearestRorDist = d; nearestRor = point.ror; }
+                        });
+                    }
+
+                    const hit = closestName && closestDist < 40;
+                    if (hit) {
+                        const rorLine = nearestRor !== null
+                            ? `<br><span style="color: #888;">${nearestRor.toFixed(1)} °C/min</span>`
+                            : '';
+                        tooltip.innerHTML = `<span style="color: #666; font-size: 11px;">${formatTime(time)}</span><br><span style="color: ${closestColor}; font-weight: 600;">${closestName}</span><br><span style="color: #aaa;">${closestTemp.toFixed(1)}°C</span>${rorLine}`;
+                    } else {
+                        tooltip.innerHTML = '';
+                        tooltip.style.display = 'none';
+                        svg.innerHTML = '';
+                        return;
+                    }
+
+                    tooltip.style.display = 'block';
+                    const tipLeft = Math.min(width - tooltip.offsetWidth - 10, Math.max(10, x - tooltip.offsetWidth / 2));
+                    const tipTop = height - padding.bottom - tooltip.offsetHeight - 8;
+                    tooltip.style.left = tipLeft + 'px';
+                    tooltip.style.top = tipTop + 'px';
+
+                    const lineY2 = tipTop - 4;
+                    svg.innerHTML = closestCurveY + 16 < lineY2
+                        ? `<line x1="${x}" y1="${closestCurveY + 8}" x2="${x}" y2="${lineY2}" stroke="${closestColor}" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+                           <circle cx="${x}" cy="${closestCurveY}" r="4" fill="${closestColor}" stroke="#fff" stroke-width="1.5"/>`
+                        : `<circle cx="${x}" cy="${closestCurveY}" r="4" fill="${closestColor}" stroke="#fff" stroke-width="1.5"/>`;
+                } else {
+                    tooltip.style.display = 'none';
+                    svg.innerHTML = '';
+                }
+            };
+
+            canvas.onmouseleave = () => {
+                document.getElementById('tempTooltip').style.display = 'none';
+                document.getElementById('tempChartLine').innerHTML = '';
+            };
+
+            canvas.onclick = (e) => {
+                if (lockedRoastIndex !== null || hoveredRoastIndex !== null) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                if (clickX < padding.left || clickX > width - padding.right) return;
+
+                const time = ((clickX - padding.left) / (width - padding.left - padding.right)) * maxTime;
+
+                let clickedIdx = null;
+                let closestDist = Infinity;
+
+                roastData.forEach((data, idx) => {
+                    // FC-boble har prioritet
+                    if (data.firstCrack && data.firstCrackTemp) {
+                        const fcX = padding.left + (data.firstCrack / maxTime) * (width - padding.left - padding.right);
+                        const fcY = height - padding.bottom - (data.firstCrackTemp / maxTemp) * (height - padding.top - padding.bottom);
+                        const dist = Math.sqrt((clickX - fcX) ** 2 + (clickY - fcY) ** 2);
+                        if (dist < 18 && dist < closestDist) {
+                            closestDist = dist;
+                            clickedIdx = idx;
+                            return;
+                        }
+                    }
+
+                    // Kurvenærhet
+                    let nearest = null;
+                    let nearestTimeDist = Infinity;
+                    data.tempData.forEach(point => {
+                        if (point.inRoast === false) return;
+                        const d = Math.abs(point.time - time);
+                        if (d < nearestTimeDist) { nearestTimeDist = d; nearest = point; }
+                    });
+                    if (nearest) {
+                        const pointY = height - padding.bottom - (nearest.temp / maxTemp) * (height - padding.top - padding.bottom);
+                        const dist = Math.abs(pointY - clickY);
+                        if (dist < closestDist) { closestDist = dist; clickedIdx = idx; }
+                    }
+                });
+
+                if (clickedIdx !== null && closestDist < 20) {
+                    if (e.metaKey) {
+                        if (chartSelectedSet.has(clickedIdx)) {
+                            chartSelectedSet.delete(clickedIdx);
+                        } else {
+                            chartSelectedSet.add(clickedIdx);
+                        }
+                    } else {
+                        if (chartSelectedSet.size === 1 && chartSelectedSet.has(clickedIdx)) {
+                            chartSelectedSet.clear();
+                        } else {
+                            chartSelectedSet.clear();
+                            chartSelectedSet.add(clickedIdx);
+                        }
+                    }
+
+                    if (chartSelectedSet.size === 1) {
+                        const selIdx = [...chartSelectedSet][0];
+                        showDetailBox(roastData[selIdx], selIdx);
+                    } else if (chartSelectedSet.size > 1) {
+                        showComparisonBox([...chartSelectedSet]);
+                    } else {
+                        hideDetailBox();
+                    }
+
+                    renderTempChart();
+                    e.stopPropagation();
+                } else if (!e.metaKey && chartSelectedSet.size > 0) {
+                    chartSelectedSet.clear();
+                    hideDetailBox();
+                    renderTempChart();
+                }
+            };
+        }
+
+        function renderRorChart() {
+            const canvas = document.getElementById('rorChart');
+            const ctx = canvas.getContext('2d');
+            const legend = document.getElementById('rorLegend');
+
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = 500 * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const width = canvas.offsetWidth;
+            const height = 500;
+            const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+
+            ctx.clearRect(0, 0, width, height);
+
+            let maxTime = 0;
+            let maxRor = 0;
+            roastData.forEach(data => {
+                data.rorData.forEach(point => {
+                    if (point.inRoast === false) return;
+                    if (point.time > maxTime) maxTime = point.time;
+                    if (Math.abs(point.ror) > maxRor) maxRor = Math.abs(point.ror);
+                });
+            });
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (height - padding.top - padding.bottom) * i / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+
+                const ror = maxRor * (1 - i / 5);
+                ctx.fillStyle = '#666';
+                ctx.font = '11px SF Mono';
+                ctx.textAlign = 'right';
+                ctx.fillText(ror.toFixed(0), padding.left - 10, y + 4);
+            }
+
+            for (let i = 0; i <= 10; i++) {
+                const x = padding.left + (width - padding.left - padding.right) * i / 10;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
+                ctx.stroke();
+
+                const time = maxTime * i / 10;
+                ctx.fillStyle = '#666';
+                ctx.font = '11px SF Mono';
+                ctx.textAlign = 'center';
+                ctx.fillText(formatTime(time), x, height - padding.bottom + 20);
+            }
+
+            legend.innerHTML = '';
+            roastData.forEach((data, idx) => {
+                const color = colors[idx % colors.length];
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                let started = false;
+                data.rorData.forEach(point => {
+                    if (point.inRoast === false) return;
+                    const x = padding.left + (point.time / maxTime) * (width - padding.left - padding.right);
+                    const y = height - padding.bottom - (Math.max(0, point.ror) / maxRor) * (height - padding.top - padding.bottom);
+
+                    if (!started) { ctx.moveTo(x, y); started = true; }
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                // Yellowing marker
+                if (data.yellowing) {
+                    const yx = padding.left + (data.yellowing / maxTime) * (width - padding.left - padding.right);
+                    drawEventMarker(ctx, yx, 0, '#f59e0b', 'Y', padding, height);
+                }
+
+                // FC marker
+                if (data.firstCrack) {
+                    const fcX = padding.left + (data.firstCrack / maxTime) * (width - padding.left - padding.right);
+                    drawEventMarker(ctx, fcX, 0, color, 'FC', padding, height);
+                }
+
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `
+                    <div class="legend-color" style="background: ${color}"></div>
+                    <span>${data.filename}</span>
+                `;
+                legend.appendChild(item);
+            });
+
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const tooltip = document.getElementById('rorTooltip');
+                const svg = document.getElementById('rorChartLine');
+
+                if (x >= padding.left && x <= width - padding.right) {
+                    const time = ((x - padding.left) / (width - padding.left - padding.right)) * maxTime;
+
+                    let closestDist = Infinity;
+                    let closestName = null;
+                    let closestRor = null;
+                    let closestColor = null;
+                    let closestCurveY = y;
+
+                    roastData.forEach((data, idx) => {
+                        let nearest = null;
+                        let nearestTimeDist = Infinity;
+                        data.rorData.forEach(point => {
+                            if (point.inRoast === false) return;
+                            const d = Math.abs(point.time - time);
+                            if (d < nearestTimeDist) { nearestTimeDist = d; nearest = point; }
+                        });
+                        if (nearest) {
+                            const pointY = height - padding.bottom - (Math.max(0, nearest.ror) / maxRor) * (height - padding.top - padding.bottom);
+                            const dist = Math.abs(pointY - y);
+                            if (dist < closestDist) {
+                                closestDist = dist;
+                                closestName = data.filename;
+                                closestRor = nearest.ror;
+                                closestColor = colors[idx % colors.length];
+                                closestCurveY = pointY;
+                            }
+                        }
+                    });
+
+                    const hit = closestName && closestDist < 40;
+                    if (hit) {
+                        tooltip.innerHTML = `<span style="color: #666; font-size: 11px;">${formatTime(time)}</span><br><span style="color: ${closestColor}; font-weight: 600;">${closestName}</span><br><span style="color: #aaa;">${closestRor.toFixed(1)}°C/min</span>`;
+                    } else {
+                        tooltip.innerHTML = `<span style="color: #999;">${formatTime(time)}</span>`;
+                    }
+
+                    tooltip.style.display = 'block';
+                    const tipLeft = Math.min(width - tooltip.offsetWidth - 10, Math.max(10, x - tooltip.offsetWidth / 2));
+                    const tipTop = closestCurveY + 16;
+                    tooltip.style.left = tipLeft + 'px';
+                    tooltip.style.top = tipTop + 'px';
+
+                    if (hit) {
+                        svg.innerHTML = `
+                            <circle cx="${x}" cy="${closestCurveY}" r="4" fill="${closestColor}" stroke="#fff" stroke-width="1.5"/>
+                        `;
+                    } else {
+                        svg.innerHTML = '';
+                    }
+                } else {
+                    tooltip.style.display = 'none';
+                    svg.innerHTML = '';
+                }
+            };
+
+            canvas.onmouseleave = () => {
+                document.getElementById('rorTooltip').style.display = 'none';
+                document.getElementById('rorChartLine').innerHTML = '';
+            };
+        }
+
+        window.addEventListener('resize', () => {
+            if (roastData.length > 0) {
+                renderTempChart();
+                renderRorChart();
+            }
+        });
+    </script>
+</body>
+</html>
