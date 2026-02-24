@@ -502,6 +502,16 @@ async function handleFiles(event) {
                 ? ((weightGreen - weightRoasted) / weightGreen * 100)
                 : null;
             const colorLevel = json.groundColorLevel ? json.groundColorLevel.value : null;
+            const chargeTemp = json.drumChargeTemperature != null ? json.drumChargeTemperature : null;
+            const preheatTemp = json.preheatTemperature != null ? json.preheatTemperature : null;
+
+            const actionEvents = [];
+            if (json.actions && json.actions.actionTimeList) {
+                json.actions.actionTimeList.forEach(a => {
+                    const t = toTime(a.index);
+                    if (t >= 0) actionEvents.push({ time: t, ctrlType: a.ctrlType, value: a.value });
+                });
+            }
 
             const roastEnd = json.totalRoastTime || toTime(endIdx);
             const firstCrack = fcIdx !== null ? toTime(fcIdx) : null;
@@ -545,6 +555,9 @@ async function handleFiles(event) {
                 weightRoasted,
                 weightLoss,
                 colorLevel,
+                chargeTemp,
+                preheatTemp,
+                actionEvents,
                 roastEnd,
                 yellowing,
                 firstCrack,
@@ -747,6 +760,16 @@ function renderAll() {
                     <div class="color-indicator" style="background: ${color}"></div>
                     ${data.filename}
                 </h3>
+                ${data.preheatTemp != null ? `
+                <div class="detail-item">
+                    <span class="detail-label">Forvarm</span>
+                    <span class="detail-value">${data.preheatTemp}°C</span>
+                </div>` : ''}
+                ${data.chargeTemp != null ? `
+                <div class="detail-item">
+                    <span class="detail-label">Ladetemp</span>
+                    <span class="detail-value">${data.chargeTemp.toFixed(1)}°C</span>
+                </div>` : ''}
                 <div class="detail-item">
                     <span class="detail-label">Grønnkaffe</span>
                     <span class="detail-value">${data.weightGreen !== null ? data.weightGreen + 'g' : '-'}</span>
@@ -820,6 +843,8 @@ function renderAll() {
             detailBox.className = 'detail-box active';
 
             const metrics = [
+                { label: 'Forvarm',    fn: d => d.preheatTemp != null ? d.preheatTemp + '°' : '—' },
+                { label: 'Ladetemp',   fn: d => d.chargeTemp != null ? d.chargeTemp.toFixed(1) + '°' : '—' },
                 { label: 'Grønnkaffe', fn: d => d.weightGreen != null ? d.weightGreen + 'g' : '—' },
                 { label: 'Vekttap',    fn: d => d.weightLoss != null ? d.weightLoss.toFixed(1) + '%' : '—' },
                 { label: 'Farge',      fn: d => d.colorLevel != null ? d.colorLevel.toFixed(1) : '—' },
@@ -892,20 +917,25 @@ function renderAll() {
             const ctx = canvas.getContext('2d');
             const legend = document.getElementById('tempLegend');
 
+            const activeIndex = lockedRoastIndex !== null ? lockedRoastIndex : hoveredRoastIndex;
+            const singleData = activeIndex !== null ? roastData[activeIndex] : (chartSelectedSet.size === 1 ? roastData[[...chartSelectedSet][0]] : null);
+            const hasActions = singleData && singleData.actionEvents && singleData.actionEvents.length > 0;
+            const stripH = (activeIndex !== null && hasActions) ? 58 : 0;
+            const chartH = 500;
+            const totalH = chartH + stripH;
+
             canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-            canvas.height = 500 * window.devicePixelRatio;
+            canvas.height = totalH * window.devicePixelRatio;
             ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
             const width = canvas.offsetWidth;
-            const height = 500;
-
-            const activeIndex = lockedRoastIndex !== null ? lockedRoastIndex : hoveredRoastIndex;
+            const height = chartH; // temperaturdiagram bruker alltid 500px
 
             const padding = activeIndex !== null
                 ? { top: 20, right: 60, bottom: 40, left: 60 }
                 : { top: 20, right: 20, bottom: 40, left: 60 };
 
-            ctx.clearRect(0, 0, width, height);
+            ctx.clearRect(0, 0, width, totalH);
 
             const dataToShow = activeIndex !== null ? [roastData[activeIndex]] : roastData;
 
@@ -1080,6 +1110,67 @@ function renderAll() {
                 rorLegendItem.className = 'legend-item';
                 rorLegendItem.innerHTML = `<div style="width:20px;height:2px;border-top:2px dashed #999;flex-shrink:0;margin-top:1px;"></div><span>RoR (°C/min, stiplet)</span>`;
                 legend.appendChild(rorLegendItem);
+            }
+
+            // P/F/D action strip
+            if (activeIndex !== null && hasActions) {
+                const actions = singleData.actionEvents;
+                const ctrlColors = ['#f97316', '#60a5fa', '#9ca3af'];
+                const ctrlLabels = ['P', 'F', 'D'];
+                const stripTop = chartH + 4;
+                const rowH = 16;
+                const chartW = width - padding.left - padding.right;
+
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, chartH);
+                ctx.lineTo(width - padding.right, chartH);
+                ctx.stroke();
+
+                [0, 1, 2].forEach((ctrl, ci) => {
+                    const evs = actions.filter(a => a.ctrlType === ctrl);
+                    if (evs.length === 0) return;
+
+                    const rowY = stripTop + ci * rowH + rowH / 2;
+                    const color = ctrlColors[ci];
+
+                    ctx.fillStyle = color;
+                    ctx.font = '9px SF Mono';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(ctrlLabels[ci], padding.left - 4, rowY + 3);
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([]);
+                    ctx.globalAlpha = 0.85;
+                    ctx.beginPath();
+
+                    let prevX = padding.left;
+                    evs.forEach((ev, i) => {
+                        const ex = padding.left + (Math.min(ev.time, maxTime) / maxTime) * chartW;
+                        ctx.moveTo(prevX, rowY);
+                        ctx.lineTo(ex, rowY);
+                        ctx.stroke();
+                        ctx.beginPath();
+
+                        ctx.fillStyle = color;
+                        ctx.font = '8px SF Mono';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(ev.value, ex, rowY - 3);
+
+                        prevX = ex;
+                    });
+                    // linje til høyre kant
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(prevX, rowY);
+                    ctx.lineTo(width - padding.right, rowY);
+                    ctx.stroke();
+
+                    ctx.globalAlpha = 1;
+                });
             }
 
             canvas.onmousemove = (e) => {
