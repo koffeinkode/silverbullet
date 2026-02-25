@@ -707,6 +707,7 @@ function renderAll() {
                     : '-';
 
                 const row = document.createElement('tr');
+                row.dataset.roastIdx = idx;
                 row.innerHTML = `
                     <td class="roast-name">
                         <div class="color-indicator" style="background: ${color}"></div>
@@ -730,6 +731,15 @@ function renderAll() {
                 row.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (e.metaKey || e.ctrlKey) {
+                        if (lockedRoastIndex !== null) {
+                            const prevIdx = lockedRoastIndex;
+                            chartSelectedSet.add(prevIdx);
+                            const prevRow = tbody.querySelector(`[data-roast-idx="${prevIdx}"]`);
+                            if (prevRow) {
+                                prevRow.style.setProperty('--sel-color', colors[prevIdx % colors.length]);
+                                prevRow.classList.add('table-selected');
+                            }
+                        }
                         lockedRoastIndex = null;
                         document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('locked'));
                         if (chartSelectedSet.has(idx)) {
