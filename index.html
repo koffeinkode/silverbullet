@@ -1377,7 +1377,7 @@ function renderAll() {
                     const hit = closestName && closestDist < 40;
                     if (hit) {
                         const rorLine = nearestRor !== null
-                            ? `<br><span style="color: #888;">${nearestRor.toFixed(1)} °C/min</span>`
+                            ? `<br><span style="color: #555; font-size: 10px;">RoR</span><br><span style="color: #888;">${nearestRor.toFixed(1)} °C/min</span>`
                             : '';
                         tooltip.innerHTML = `<span style="color: #666; font-size: 11px;">${formatTime(time)}</span><br><span style="color: ${closestColor}; font-weight: 600;">${closestName}</span><br><span style="color: #aaa;">${closestTemp.toFixed(1)}°C</span>${rorLine}`;
                     } else {
