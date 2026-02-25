@@ -1075,6 +1075,7 @@ function renderAll() {
 
             canvas.width = canvas.offsetWidth * window.devicePixelRatio;
             canvas.height = totalH * window.devicePixelRatio;
+            canvas.style.height = totalH + 'px';
             ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
             const width = canvas.offsetWidth;
